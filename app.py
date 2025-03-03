@@ -15,6 +15,8 @@ app = APIFlask(__name__, title=API_TITLE, version=API_VERSION)
 
 # load .env if present
 load_dotenv()
+# Next, define the auth variable
+auth = HTTPTokenAuth(scheme='ApiKey', header='API_TOKEN')
 
 # the secret API key, plus we need a username in that record
 API_TOKEN = os.getenv('API_TOKEN', 'MY_SECRETKEY')  
