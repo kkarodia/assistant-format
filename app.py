@@ -3,6 +3,8 @@ import ast
 from apiflask import APIFlask
 from flask_httpauth import HTTPTokenAuth
 from dotenv import load_dotenv
+from flask import request, jsonify
+import json
 
 # Set how this API should be titled and the current version
 API_TITLE='Events API for Watson Assistant'
@@ -72,6 +74,63 @@ def print_default():
     return {'message': 'This is the certifications API server'}
 
 
+@app.route('/format-text', methods=['POST'])
+@auth.login_required
+def format_text():
+    """Format text from a provided JSON array
+    
+    This endpoint accepts a JSON array of text objects and formats them
+    into a structured response.
+    """
+    try:
+        # Get the JSON data from the request
+        data = request.get_json()
+        
+        if not data or not isinstance(data, list):
+            return jsonify({
+                'status': 'error',
+                'message': 'Invalid input. Expected a JSON array.'
+            }), 400
+        
+        # Initialize the formatted response
+        formatted_response = {
+            'call_script': None,
+            'recommendations': None,
+            'account_details': None,
+            'delinquency_analysis': None,
+            'next_action': None
+        }
+        
+        # Process each item in the array
+        for item in data:
+            if 'text' in item:
+                text = item['text']
+                
+                # Categorize the content based on the starting text
+                if text.startswith('Call Strategy Guide'):
+                    formatted_response['call_script'] = text
+                elif text.startswith('AI Recommended Actions'):
+                    formatted_response['recommendations'] = text
+                elif text.startswith("Let's analyze"):
+                    formatted_response['delinquency_analysis'] = text
+                elif text.startswith('Recommendation: Schedule'):
+                    formatted_response['next_action'] = text
+            elif 'Account_no' in item:
+                # This is the account details object
+                formatted_response['account_details'] = item
+        
+        return jsonify({
+            'status': 'success',
+            'formatted_data': formatted_response
+        })
+    
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Error processing request: {str(e)}'
+        }), 500
+    
+    
 # Start the actual app
 # Get the PORT from environment or use the default
 port = os.getenv('PORT', '5000')
