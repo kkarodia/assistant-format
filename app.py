@@ -17,9 +17,15 @@ app = APIFlask(__name__, title=API_TITLE, version=API_VERSION)
 load_dotenv()
 
 # the secret API key, plus we need a username in that record
-API_TOKEN="{{'{0}':'appuser'}}".format(os.getenv('API_TOKEN'))
-#convert to dict:
-tokens=ast.literal_eval(API_TOKEN)
+API_TOKEN = os.getenv('API_TOKEN', 'MY_SECRETKEY')  
+tokens = {API_TOKEN: 'appuser'}
+
+# Add this verification callback function
+@auth.verify_token
+def verify_token(token):
+    if token in tokens:
+        return tokens[token]
+    return None
 
 # specify a generic SERVERS scheme for OpenAPI to allow both local testing
 # and deployment on Code Engine with configuration within Watson Assistant
