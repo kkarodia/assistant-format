@@ -74,8 +74,8 @@ def print_default():
     return {'message': 'This is the certifications API server'}
 
 
-@app.route('/format-text', methods=['POST'])
-@auth.login_required
+@app.get('/format-text/<string:text>')
+@app.auth_required(auth)
 def format_text():
     """Format text from a provided JSON array
     
