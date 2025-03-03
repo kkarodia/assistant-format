@@ -25,9 +25,6 @@ RUN python -m venv /venv
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Download NLTK data during build phase
-RUN python -c "import nltk; nltk.download('punkt', download_dir='/venv/nltk_data'); nltk.download('stopwords', download_dir='/venv/nltk_data'); nltk.download('wordnet', download_dir='/venv/nltk_data'); nltk.download('punkt_tab', download_dir='/venv/nltk_data')"
-
 
 # Actual container
 #
@@ -36,8 +33,6 @@ FROM python:3.10-slim AS app
 
 # Extra python env
 ENV PATH="/venv/bin:$PATH"
-# Set NLTK_DATA environment variable to point to the copied data
-ENV NLTK_DATA="/venv/nltk_data"
 
 WORKDIR /app
 EXPOSE 8080
