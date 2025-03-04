@@ -82,9 +82,9 @@ def print_default():
     return {'message': 'This is the certifications API server'}
 
 
-@app.get('/format-text/<array:text>')
+@app.post('/format-text')
 @app.auth_required(auth)
-def format_text(inputtext):
+def format_text():
     """Format text from a provided JSON array
     
     This endpoint accepts a JSON array of text objects and formats them
@@ -92,7 +92,7 @@ def format_text(inputtext):
     """
     try:
         # Get the JSON data from the request
-        data = inputtext
+        data = request.json
         
         if not data or not isinstance(data, list):
             return jsonify({
@@ -138,7 +138,6 @@ def format_text(inputtext):
             'message': f'Error processing request: {str(e)}'
         }), 500
     
-
 # Start the actual app
 # Get the PORT from environment or use the default
 port = os.getenv('PORT', '5000')
