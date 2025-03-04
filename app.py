@@ -82,7 +82,7 @@ def print_default():
     return {'message': 'This is the certifications API server'}
 
 
-@app.get('/format-text/<string:text>')
+@app.get('/format-text/<array:text>')
 @app.auth_required(auth)
 def format_text(inputtext):
     """Format text from a provided JSON array
