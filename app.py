@@ -15,19 +15,11 @@ app = APIFlask(__name__, title=API_TITLE, version=API_VERSION)
 
 # load .env if present
 load_dotenv()
-# Next, define the auth variable
-auth = HTTPTokenAuth(scheme='ApiKey', header='API_TOKEN')
 
 # the secret API key, plus we need a username in that record
-API_TOKEN = os.getenv('API_TOKEN', 'MY_SECRETKEY')  
-tokens = {API_TOKEN: 'appuser'}
-
-# Add this verification callback function
-@auth.verify_token
-def verify_token(token):
-    if token in tokens:
-        return tokens[token]
-    return None
+API_TOKEN="{{'{0}':'appuser'}}".format(os.getenv('API_TOKEN'))
+#convert to dict:
+tokens=ast.literal_eval(API_TOKEN)
 
 # specify a generic SERVERS scheme for OpenAPI to allow both local testing
 # and deployment on Code Engine with configuration within Watson Assistant
@@ -82,50 +74,36 @@ def print_default():
     return {'message': 'This is the certifications API server'}
 
 
-@app.post('/format-text')
+@app.get('/format-text/<string:text>')
 @app.auth_required(auth)
-def format_text():
-    """Format text from a provided JSON array
+def format_text(text):
+    """Format text into a collapsible heading with content
     
-    This endpoint accepts a JSON array of text objects and formats them
-    into a structured response.
+    This endpoint accepts text as a URL parameter and returns a 
+    formatted JSON response with a heading and collapsible content.
     """
     try:
-        # Get the JSON data from the request
-        data = request.json
-        
-        if not data or not isinstance(data, list):
+        # Validate the input text
+        if not text:
             return jsonify({
                 'status': 'error',
-                'message': 'Invalid input. Expected a JSON array.'
+                'message': 'Invalid input. Text cannot be empty.'
             }), 400
         
-        # Initialize the formatted response
-        formatted_response = {
-            'call_script': None,
-            'recommendations': None,
-            'account_details': None,
-            'delinquency_analysis': None,
-            'next_action': None
-        }
+        # Split the text into heading and content
+        # If text doesn't contain a newline, use the first 50 characters as heading
+        if '\n' in text:
+            heading, content = text.split('\n', 1)
+        else:
+            heading = text[:50] + ('...' if len(text) > 50 else '')
+            content = text
         
-        # Process each item in the array
-        for item in data:
-            if 'text' in item:
-                text = item['text']
-                
-                # Categorize the content based on the starting text
-                if text.startswith('Call Strategy Guide'):
-                    formatted_response['call_script'] = text
-                elif text.startswith('AI Recommended Actions'):
-                    formatted_response['recommendations'] = text
-                elif text.startswith("Let's analyze"):
-                    formatted_response['delinquency_analysis'] = text
-                elif text.startswith('Recommendation: Schedule'):
-                    formatted_response['next_action'] = text
-            elif 'Account_no' in item:
-                # This is the account details object
-                formatted_response['account_details'] = item
+        # Create the formatted response
+        formatted_response = {
+            'heading': heading.strip(),
+            'content': content.strip(),
+            'is_collapsible': True
+        }
         
         return jsonify({
             'status': 'success',
@@ -137,7 +115,8 @@ def format_text():
             'status': 'error',
             'message': f'Error processing request: {str(e)}'
         }), 500
-    
+
+
 # Start the actual app
 # Get the PORT from environment or use the default
 port = os.getenv('PORT', '5000')
