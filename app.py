@@ -106,7 +106,7 @@ def format_text(input_object):
                 content = text_parts[1].strip() if len(text_parts) > 1 else ''
                 
                 # Add option to dropdown
-                dropdown_html += f"<option value='{index}' data-content='{account_details.replace('"', "&quot;")}'>{heading if 'Account_no' in item else 'Account Details'}</option>"
+                dropdown_html += f'<option value="{index}" data-content="{account_details.replace(\'"', "&quot;")}">{heading if "Account_no" in item else "Account Details"}</option>'
             
             elif 'Account_no' in item:
                 # Convert account details to a readable format
